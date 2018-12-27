@@ -20,9 +20,10 @@ ui <- fluidPage(
         tags$style(type = "text/css", "label { font-size: 10px; }"),        
         selectInput("ord", "Select an order:", 
                     c("All orders", "Anura",
-                      "Gymnophiona", "Urodela"),selected="All orders"),
+                      "Gymnophiona", "Caudata"),selected="All orders"),
         uiOutput("fam"),
         uiOutput("gen"),
+       # textInput("text", label = "Search", value = ""),
         br(),
         uiOutput("totals")
       ),
@@ -32,7 +33,7 @@ ui <- fluidPage(
           tabPanel("Information", div(HTML("
                                            <br>
                                            <br>
-                                           A karyotype is a highly variable and complex trait that can reveal changes in genome organization, uncover phylogenetic history, and distinguish cryptic species. The current database contains 1,947 Amphibian karyotypes which we have compiled from 194 publications. This website allows you to retrieve data for any order, family, or genus of interest. Once you have selected your dataset, you can either plot it interactively or build a customized table of your results.  In the plot tab, use the drop-down menus to select which variables to plot and subset the data. In the table tab, use the checkboxes to include each type of data in the table and the download button to retrieve a CSV file containing the selected data.
+                                           A karyotype is a highly variable and complex trait that can reveal changes in genome organization, uncover phylogenetic history, and distinguish cryptic species. The current database contains 1,970 Amphibian karyotypes which we have compiled from 193 publications. This website allows you to retrieve data for any order, family, or genus of interest. Once you have selected your dataset, you can either plot it interactively or build a customized table of your results.  In the plot tab, use the drop-down menus to select which variables to plot and subset the data. In the table tab, use the checkboxes to include each type of data in the table and the download button to retrieve a CSV file containing the selected data.
                                            <br>
                                            <br>
                                            <b>Submitting Data:</b> If you are aware of any available records that should be added to the database please email us and we will incorporate the missing data.
@@ -48,7 +49,7 @@ ui <- fluidPage(
                                            <a href='website' target='_blank'> Perkins R, R.H. Adams, H. Blackmon. The Amphibian Karyotype Database. XXXXX. XX:XX. XX-XX</a>
                                            <br>
                                            <br>
-                                           Current version of the database is 0.1 last updated 17 October 2018."), style = "font-size:100%")),
+                                           Current version of the database is 0.1 last updated 24 December 2018."), style = "font-size:100%")),
 
           tabPanel("Plot", 
                    uiOutput("Xplot", inline=T), 
@@ -74,10 +75,6 @@ ui <- fluidPage(
                    downloadButton("downloadData", "Download"),
                    div(tableOutput("selTable"), 
                        style = "font-size:80%"))
-          
-          
-
-          
         )
       )
    )
@@ -104,7 +101,7 @@ server <- function(input, output) {
     return(a)
   })
   # generates a vector of current genus names
-  gen <- reactive(sort(unique(target.dat2()$genus)))
+  gen <- reactive(sort(unique(target.dat2()$Genus)))
   
   # this makes the family dropdown menu
   output$fam <- renderUI({
@@ -120,45 +117,74 @@ server <- function(input, output) {
   final.dat <- reactive({
     a <- target.dat()
     if(input$fam != "All families") a <- a[a$Family == input$fam, ]
-    if(input$gen != "All genera") a <- a[a$genus == input$gen, ]
+    if(input$gen != "All genera") a <- a[a$Genus == input$gen, ]
     return(a)
   })
+  
+  # if(input$text != ""){
+  #   c.gen <- c.sp <- o.gen <- o.sp <- c()
+  #   for(i in 1:nrow(final.dat)){
+  #     x <- strsplit(final.dat$Species[i], " ")[[1]]
+  #     y <- strsplit(final.dat$Original.listing[i], " ")[[1]]
+  #     c.gen[i] <- x[1]
+  #     c.sp[i] <- x[2]
+  #     o.gen[i] <- y[1]
+  #     o.sp[i] <- y[2]
+  #   }
+  #   final.dat <- reactive({
+  #     good.rows <- c()
+  #     # check order
+  #     good.rows <- c(good.rows, which(final.dat$Order == input$text))
+  #     # check family
+  #     good.rows <- c(good.rows, which(final.dat$Family == input$text))
+  #     # check genus
+  #     good.rows <- c(good.rows, which(final.dat$Genus == input$text))
+  #     # check species
+  #     good.rows <- c(good.rows, which(final.dat$Species == input$text))
+  #     # check binomials
+  #     good.rows <- c(good.rows, which(c.gen == input$text))
+  #     good.rows <- c(good.rows, which(c.sp == input$text))
+  #     good.rows <- c(good.rows, which(o.gen == input$text))
+  #     good.rows <- c(good.rows, which(o.sp == input$text))
+  #   })
+  #   return(final.dat[good.rows, ])
+  # }
   
   output$totals <- renderText({
     paste(nrow(final.dat()),"records available")
   })
   
   col.dat <- reactive({
-    x <- 5
+    x <- 4
     if("Taxonomy" %in% input$col.pic) x <- c(1, 2, x)
-    if("Diploid number" %in% input$col.pic) x <- c(x, 6)
-    if("Fundamental number" %in% input$col.pic) x <- c(x, 7)
-    if("Sex chromosomes" %in% input$col.pic) x <- c(x, 8)
-    if("Ploidy level" %in% input$col.pic) x <- c(x, 9)
-    if("B chromosomes" %in% input$col.pic) x <- c(x, 10)
-    if("Microchromosomes" %in% input$col.pic) x <- c(x, 11)
-    if("Notes" %in% input$col.pic) x <- c(x, 12)
-    if("Other names" %in% input$col.pic) x <- c(x, 13)
-    if("Citation" %in% input$col.pic) x <- c(x, 14)
+    if("Diploid number" %in% input$col.pic) x <- c(x, 5)
+    if("Fundamental number" %in% input$col.pic) x <- c(x, 6)
+    if("Sex chromosomes" %in% input$col.pic) x <- c(x, 7)
+    if("Ploidy level" %in% input$col.pic) x <- c(x, 8)
+    if("B chromosomes" %in% input$col.pic) x <- c(x, 9)
+    if("Microchromosomes" %in% input$col.pic) x <- c(x, 10)
+    if("Notes" %in% input$col.pic) x <- c(x, 11)
+    if("Other names" %in% input$col.pic) x <- c(x, 12)
+    if("Citation" %in% input$col.pic) x <- c(x, 13)
     return(x)
   })
   
   col.plot <- reactive({
     x <- vector()
-    if("Diploid number" %in% input$Xvar) x <- 6
-    if("Fundamental number" %in% input$Xvar) x <- 7
-    if("Sex chromosomes" %in% input$Xvar) x <- 8
-    if("Ploidy level" %in% input$Xvar) x <- 9
-    if("B chromosomes" %in% input$Xvar) x <- 10
-    if("Microchromosomes" %in% input$Xvar) x <- 11
-    if("Diploid number" %in% input$Yvar) x <- c(x, 6)
-    if("Fundamental number" %in% input$Yvar) x <- c(x, 7)
-    if("Ploidy level" %in% input$Yvar) x <- c(x, 9)
-    if("B chromosomes" %in% input$Yvar) x <- c(x, 10)
-    if("Microchromosomes" %in% input$Yvar) x <- c(x, 11)
+    if("Diploid number" %in% input$Xvar) x <- 5
+    if("Fundamental number" %in% input$Xvar) x <- 6
+    if("Sex chromosomes" %in% input$Xvar) x <- 7
+    if("Ploidy level" %in% input$Xvar) x <- 8
+    if("B chromosomes" %in% input$Xvar) x <- 9
+    if("Microchromosomes" %in% input$Xvar) x <- 10
+    if("Diploid number" %in% input$Yvar) x <- c(x, 5)
+    if("Fundamental number" %in% input$Yvar) x <- c(x, 6)
+    if("Ploidy level" %in% input$Yvar) x <- c(x, 8)
+    if("B chromosomes" %in% input$Yvar) x <- c(x, 9)
+    if("Microchromosomes" %in% input$Yvar) x <- c(x, 10)
     if("Order" %in% input$Colby) x <- c(x, 1)
     if("Family" %in% input$Colby) x <- c(x, 2)
-    if("Sex Chromosomes" %in% input$Colby) x <- c(x, 8)
+    if("Sex Chromosomes" %in% input$Colby) x <- c(x, 7)
     return(x)
   })
   
